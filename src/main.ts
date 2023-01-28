@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 const Github = require('@actions/github');
-const { Octokit } = require("@octokit/rest");
+const { 
+} = require("@octokit/rest");
 const { retry } = require("@octokit/plugin-retry");
 const token = core.getInput('token', { required: true });
 const context = Github.context;
@@ -39,14 +40,14 @@ async function run() {
   }
 
   try {
-    let pr = await octokit.pulls.create({ owner: context.repo.owner, repo, title: prTitle, head: owner + ':' + head, base: base, body: prMessage, maintainer_can_modify: false });
+    let pr = await octokit.rest.pulls.create({ owner: context.repo.owner, repo, title: prTitle, head: owner + ':' + head, base: base, body: prMessage, maintainer_can_modify: false });
     await delay(20);
     if (autoApprove) {
-        await octokit.pulls.createReview({ owner: context.repo.owner, repo, pull_number: pr.data.number, event: "COMMENT", body: "Auto approved" });
-        await octokit.pulls.createReview({ owner: context.repo.owner, repo, pull_number: pr.data.number, event: "APPROVE" });
+        await octokit.rest.pulls.createReview({ owner: context.repo.owner, repo, pull_number: pr.data.number, event: "COMMENT", body: "Auto approved" });
+        await octokit.rest.pulls.createReview({ owner: context.repo.owner, repo, pull_number: pr.data.number, event: "APPROVE" });
     }
     if(autoMerge) {
-        await octokit.pulls.merge({ owner: context.repo.owner, repo, pull_number: pr.data.number, merge_method: mergeMethod });
+        await octokit.rest.pulls.merge({ owner: context.repo.owner, repo, pull_number: pr.data.number, merge_method: mergeMethod });
     }
   } catch (error: any) {
     if (error.request.request.retryCount) {
