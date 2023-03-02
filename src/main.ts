@@ -1,17 +1,17 @@
 import * as core from '@actions/core';
-const Github = require('@actions/github');
-const { Octokit } = require("@octokit/rest");
-const { retry } = require("@octokit/plugin-retry");
+import Github from '@actions/github';
+import { Octokit } from "@octokit/rest";
+import { retry } from "@octokit/plugin-retry";
 const token = core.getInput('token', { required: true });
 const context = Github.context;
 const MyOctokit = Octokit.plugin(retry);
 
 async function run() {
-  let owner = core.getInput('owner', { required: false }) || context.repo.owner;
-  let repo = core.getInput('repo', { required: false}) || context.repo.repo;
+  let owner: string = core.getInput('owner', { required: false }) || context.repo.owner;
+  let repo: string = core.getInput('repo', { required: false}) || context.repo.repo;
   const base = core.getInput('base', { required: false });
   const head = core.getInput('head', { required: false });
-  const mergeMethod = core.getInput('merge_method', { required: false });
+  const mergeMethod = core.getInput('merge_method', { required: false }) as "merge" | "squash" | "rebase";
   const prTitle = core.getInput('pr_title', { required: false });
   const prMessage = core.getInput('pr_message', { required: false });
   const ignoreFail = core.getBooleanInput('ignore_fail', { required: false });
@@ -39,7 +39,7 @@ async function run() {
   }
 
   try {
-    let pr = await octokit.pulls.create({ owner: context.repo.owner, repo: context.repo.repo, title: prTitle, head: owner + ':' + head, base: base, body: prMessage, maintainer_can_modify: false });
+    let pr = await octokit.pulls.create({ owner: context.repo.owner, repo: context.repo.repo, title: prTitle, head: owner + ':' + head, head_repo: repo, base: base, body: prMessage, maintainer_can_modify: false });
     await delay(20);
     if (autoApprove) {
         await octokit.pulls.createReview({ owner: context.repo.owner, repo: context.repo.repo, pull_number: pr.data.number, event: "COMMENT", body: "Auto approved" });
